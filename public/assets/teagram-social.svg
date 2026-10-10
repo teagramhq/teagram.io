@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title description">
+  <title id="title">Teagram social preview</title>
+  <desc id="description">A messaging app with its own server. Early development, with a macOS desktop client and a web client in progress.</desc>
+  <rect width="1200" height="630" fill="#F7FAF8"/>
+  <path d="M790 0h410v630H790z" fill="#E3EEE8"/>
+  <path d="M790 82v466" stroke="#BBCEC3" stroke-width="2"/>
+  <text x="96" y="103" fill="#0F7A57" font-family="Arial, sans-serif" font-size="18" font-weight="700" letter-spacing="4">TEAGRAM  /  EARLY DEVELOPMENT</text>
+  <text x="96" y="270" fill="#15231D" font-family="Georgia, serif" font-size="76" letter-spacing="-3">A messaging app</text>
+  <text x="96" y="360" fill="#15231D" font-family="Georgia, serif" font-size="76" letter-spacing="-3">with its own server.</text>
+  <path d="M96 412h528" stroke="#BBCEC3" stroke-width="2"/>
+  <text x="96" y="466" fill="#4C6257" font-family="Arial, sans-serif" font-size="24">macOS desktop client · web client in progress</text>
+  <text x="96" y="555" fill="#0F7A57" font-family="Arial, sans-serif" font-size="17" font-weight="700" letter-spacing="1">TEAGRAMHQ.GITHUB.IO/TEAGRAM.IO</text>
+  <image href="./brand/t-primary-256.png" x="865" y="191" width="250" height="250"/>
+</svg>

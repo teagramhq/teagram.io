@@ -1,0 +1,81 @@
+name: Deploy GitHub Pages
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  ci:
+    name: ci
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the site
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run static site checks
+        run: node --test tests/site.test.mjs
+
+  docker:
+    name: docker
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the site
+        uses: actions/checkout@v4
+      - name: Confirm Docker is not part of this Pages site
+        run: |
+          if find . -type f \( -iname 'Dockerfile' -o -iname 'Dockerfile.*' \) -print -quit | grep -q .; then
+            echo "::error::A Dockerfile exists, but this repository has no Docker build check."
+            exit 1
+          fi
+          echo "N/A: the site deploys with GitHub Pages and has no Dockerfile."
+
+  compose:
+    name: compose
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the site
+        uses: actions/checkout@v4
+      - name: Confirm Compose is not part of this Pages site
+        run: |
+          if find . -type f \( -iname 'compose*.yml' -o -iname 'compose*.yaml' -o -iname 'docker-compose*.yml' -o -iname 'docker-compose*.yaml' \) -print -quit | grep -q .; then
+            echo "::error::A Compose manifest exists, but this repository has no Compose check."
+            exit 1
+          fi
+          echo "N/A: the site deploys with GitHub Pages and has no Compose manifest."
+
+  deploy:
+    if: github.event_name != 'pull_request'
+    needs: [ci, docker, compose]
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the site
+        uses: actions/checkout@v4
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+      - name: Upload site artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

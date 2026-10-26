@@ -4,6 +4,7 @@ import test from 'node:test';
 
 const htmlPath = new URL('../public/index.html', import.meta.url);
 const stylesPath = new URL('../public/styles.css', import.meta.url);
+const sitemapPath = new URL('../public/sitemap.xml', import.meta.url);
 
 test('the landing page explains Teagram and links to its public projects', () => {
   assert.ok(existsSync(htmlPath), 'index.html serves the landing page');
@@ -38,6 +39,20 @@ test('the page provides accessible metadata and self-hosted brand assets', () =>
   assert.ok(existsSync(new URL('../public/assets/teagram-social.png', import.meta.url)));
   assert.doesNotMatch(html, /<script\b/i);
   assert.doesNotMatch(html, /https?:\/\/(?:fonts\.googleapis\.com|fonts\.gstatic\.com|cdn\.)/i);
+});
+
+test('the site uses its production domain for metadata and sitemap', () => {
+  const html = readFileSync(htmlPath, 'utf8');
+
+  assert.match(html, /<link rel="canonical" href="https:\/\/teagram\.io\//);
+  assert.match(html, /<meta property="og:url" content="https:\/\/teagram\.io\//);
+  assert.match(html, /<meta property="og:image" content="https:\/\/teagram\.io\//);
+  assert.match(html, /<meta name="twitter:image" content="https:\/\/teagram\.io\//);
+  assert.doesNotMatch(html, /github\.io/i);
+
+  assert.ok(existsSync(sitemapPath), 'sitemap.xml is deployed with the site');
+  const sitemap = readFileSync(sitemapPath, 'utf8');
+  assert.match(sitemap, /<loc>https:\/\/teagram\.io\/<\/loc>/);
 });
 
 test('the stylesheet adapts to dark mode and narrow screens', () => {

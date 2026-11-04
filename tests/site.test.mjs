@@ -1,17 +1,136 @@
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
+import { resolve, sep } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 
 const publicDir = new URL('../public/', import.meta.url);
 const htmlPath = new URL('../public/index.html', import.meta.url);
 const stylesPath = new URL('../public/styles.css', import.meta.url);
 const sitemapPath = new URL('../public/sitemap.xml', import.meta.url);
+const publicPath = resolve(fileURLToPath(publicDir));
 
 const html = () => readFileSync(htmlPath, 'utf8');
 const css = () => readFileSync(stylesPath, 'utf8');
 
 function publicFile(relative) {
   return new URL(relative.replace(/^\.\//, ''), publicDir);
+}
+
+function parseAttributes(source) {
+  const attributes = {};
+  const pattern = /([^\s=/>]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+)))?/g;
+  let match;
+  while ((match = pattern.exec(source))) {
+    attributes[match[1].toLowerCase()] = match[2] ?? match[3] ?? match[4] ?? '';
+  }
+  return attributes;
+}
+
+function htmlTags(source) {
+  return [...source.matchAll(/<([a-z][\w:-]*)\b([^>]*)>/gi)].map((match) => ({
+    name: match[1].toLowerCase(),
+    attributes: parseAttributes(match[2]),
+  }));
+}
+
+function urlCandidates(value, attribute) {
+  if (attribute !== 'srcset') return [value.trim()];
+  return value.split(',').map((candidate) => candidate.trim().split(/\s+/)[0]).filter(Boolean);
+}
+
+function htmlURLReferences(source) {
+  const references = [];
+  for (const tag of htmlTags(source)) {
+    for (const attribute of ['src', 'href', 'srcset']) {
+      const value = tag.attributes[attribute];
+      if (value === undefined) continue;
+      for (const candidate of urlCandidates(value, attribute)) {
+        references.push({ tag: tag.name, attribute, value: candidate, attributes: tag.attributes });
+      }
+    }
+  }
+  return references;
+}
+
+function cssURLReferences(source) {
+  return [...source.matchAll(/url\(\s*(?:"([^"]*)"|'([^']*)'|([^)]*?))\s*\)/gi)]
+    .map((match) => ({ tag: 'css', attribute: 'url()', value: (match[1] ?? match[2] ?? match[3]).trim() }));
+}
+
+function resourceReferences(page, styles) {
+  const htmlReferences = htmlURLReferences(page).filter(({ tag, attribute, value, attributes }) => {
+    if (attribute === 'href' && tag === 'a') return false;
+    if (attribute === 'href' && tag === 'link' && attributes.rel?.toLowerCase().split(/\s+/).includes('canonical')) return false;
+    if (attribute === 'href' && value.startsWith('#')) return false;
+    return true;
+  });
+  return [...htmlReferences, ...cssURLReferences(styles)];
+}
+
+function assertResourcesStayLocal(page, styles) {
+  for (const reference of resourceReferences(page, styles)) {
+    const label = `<${reference.tag}> ${reference.attribute}=${reference.value}`;
+    assert.ok(!reference.value.startsWith('//'), `${label} must not use a protocol-relative URL`);
+    assert.ok(!reference.value.startsWith('/'), `${label} must use a path inside public/`);
+    assert.ok(!/^[a-z][a-z\d+.-]*:/i.test(reference.value), `${label} must use a local URL`);
+  }
+}
+
+function assertLocalReferencesExist(page, styles) {
+  const references = [...htmlURLReferences(page), ...cssURLReferences(styles)];
+  for (const reference of references) {
+    const value = reference.value;
+    if (value.startsWith('#') || /^[a-z][a-z\d+.-]*:/i.test(value)) continue;
+    assert.ok(!value.startsWith('//'), `${value} must not use a protocol-relative URL`);
+
+    const target = resolve(fileURLToPath(new URL(value, publicDir)));
+    const label = `${reference.attribute} ${value}`;
+    assert.ok(target === publicPath || target.startsWith(`${publicPath}${sep}`), `${label} stays inside public/`);
+    assert.ok(existsSync(target), `${label} resolves to a file in public/`);
+  }
+}
+
+function assertImagesHaveAlt(page) {
+  for (const image of htmlTags(page).filter(({ name }) => name === 'img')) {
+    assert.ok(Object.hasOwn(image.attributes, 'alt'), '<img> has an alt attribute');
+  }
+}
+
+function assertInPageLinksResolve(page) {
+  const ids = new Set(htmlTags(page).map(({ attributes }) => attributes.id).filter((id) => id !== undefined));
+  const links = htmlURLReferences(page).filter(({ attribute, value }) => attribute === 'href' && value.startsWith('#'));
+  for (const { tag, value } of links) {
+    const id = decodeURIComponent(value.slice(1).split(/[?#]/, 1)[0]);
+    assert.ok(ids.has(id), `<${tag}> href="${value}" points to an id on the page`);
+  }
+}
+
+function mediaBlocks(source, query) {
+  const expected = query.replace(/\s+/g, '').toLowerCase();
+  const blocks = [];
+  const pattern = /@media\s*\(([^)]*)\)\s*\{/gi;
+  let match;
+  while ((match = pattern.exec(source))) {
+    if (match[1].replace(/\s+/g, '').toLowerCase() !== expected) continue;
+    const open = source.indexOf('{', match.index);
+    let depth = 0;
+    for (let index = open; index < source.length; index += 1) {
+      if (source[index] === '{') depth += 1;
+      if (source[index] === '}') depth -= 1;
+      if (depth === 0) {
+        blocks.push(source.slice(open + 1, index));
+        break;
+      }
+    }
+  }
+  return blocks;
+}
+
+function pngDimensions(path) {
+  const image = readFileSync(path);
+  assert.equal(image.subarray(0, 8).toString('hex'), '89504e470d0a1a0a', `${path} is a PNG`);
+  return { width: image.readUInt32BE(16), height: image.readUInt32BE(20) };
 }
 
 test('the page leads with the three ideas in order and the state A copy', () => {
@@ -23,6 +142,9 @@ test('the page leads with the three ideas in order and the state A copy', () => 
   assert.match(page, /Free\. For Macs with Apple silicon and macOS 13 or later\./);
   assert.match(page, /<p class="pill">Coming soon<\/p>/);
   assert.doesNotMatch(page, /Open Teagram Web/, 'state B copy waits for public sign-up (MAIN-2194)');
+  assert.doesNotMatch(page, /The app installs its own updates\./i, 'the desktop updater is not available yet');
+  assert.match(page, /or wait for Teagram Web, coming soon\./i);
+  assert.doesNotMatch(page, /where anyone can sign up/i, 'Web sign-up still needs an invite (MAIN-2194)');
 });
 
 test('the page keeps its sections, anchors and FAQ answers in the spec order', () => {
@@ -83,27 +205,56 @@ test('canonical, og and twitter metadata use the production domain', () => {
   assert.match(page, /<meta name="twitter:card" content="summary_large_image">/);
   assert.doesNotMatch(page, /github\.io/i);
 
+  const socialImage = publicFile('assets/teagram-social.png');
+  assert.ok(existsSync(socialImage), 'the social image exists at the metadata URL');
+  assert.deepEqual(pngDimensions(socialImage), { width: 1200, height: 630 });
+
   assert.ok(existsSync(sitemapPath), 'sitemap.xml is deployed with the site');
   assert.match(readFileSync(sitemapPath, 'utf8'), /<loc>https:\/\/teagram\.io\/<\/loc>/);
 });
 
 test('every local file the page loads exists in public/', () => {
   const page = html();
-  const refs = [...page.matchAll(/\b(?:src|href|srcset)="(\.\/[^"]+)"/g)].map((m) => m[1]);
-  refs.push(...[...css().matchAll(/url\("(\.\/[^"]+)"\)/g)].map((m) => m[1]));
-  assert.ok(refs.length > 0, 'the page references local assets');
-  for (const ref of refs) {
-    assert.ok(existsSync(publicFile(ref)), `${ref} exists in public/`);
-  }
+  assertLocalReferencesExist(page, css());
+  assertImagesHaveAlt(page);
+  assertInPageLinksResolve(page);
 });
 
 test('the page loads nothing from another origin and runs no script', () => {
   const page = html();
   assert.doesNotMatch(page, /<script\b/i);
-  assert.doesNotMatch(page, /<(?:img|source|iframe|video|audio|object|embed)\b[^>]*\bsrc(?:set)?="https?:/i);
-  assert.doesNotMatch(page, /<link\b[^>]*\bhref="https?:[^"]*"[^>]*rel="(?:stylesheet|preload|preconnect)"/i);
+  assertResourcesStayLocal(page, css());
   assert.doesNotMatch(css(), /@import|url\(\s*["']?https?:/i);
   assert.doesNotMatch(page, /https?:\/\/(?:fonts\.googleapis\.com|fonts\.gstatic\.com|cdn\.)/i);
+});
+
+test('reference checks catch reordered attributes, protocol-relative URLs and quoted local paths', () => {
+  assert.throws(
+    () => assertResourcesStayLocal('<link rel="stylesheet" href="https://other.example/x.css">', ''),
+    /must use a local URL/,
+  );
+  assert.throws(
+    () => assertResourcesStayLocal('<img src="//host.example/image.png" alt="">', ''),
+    /protocol-relative/,
+  );
+  assert.throws(
+    () => assertResourcesStayLocal('<source srcset="./local.webp 1x, //host.example/remote.webp 2x">', ''),
+    /protocol-relative/,
+  );
+  assert.throws(
+    () => assertResourcesStayLocal('', 'body { background: url(\'//host.example/image.png\'); }'),
+    /protocol-relative/,
+  );
+  assert.throws(
+    () => assertLocalReferencesExist('<img src="assets/missing.webp" alt="">', ''),
+    /assets\/missing\.webp resolves to a file/,
+  );
+  assert.throws(
+    () => assertLocalReferencesExist('', "@font-face { src: url('./assets/fonts/missing.woff2'); }"),
+    /\.\/assets\/fonts\/missing\.woff2 resolves to a file/,
+  );
+  assert.throws(() => assertImagesHaveAlt('<img src="./assets/brand/t-primary-64.png">'), /alt attribute/);
+  assert.throws(() => assertInPageLinksResolve('<a href="#missing">FAQ</a>'), /points to an id/);
 });
 
 test('the product visual ships WebP shots within their size budgets', () => {
@@ -137,12 +288,21 @@ test('the brand and font files are self-hosted and the licence ships with the fo
 
 test('the stylesheet covers dark mode, the phone breakpoints, focus and reduced motion', () => {
   const styles = css();
-  assert.match(styles, /@media \(prefers-color-scheme: dark\)/);
-  assert.match(styles, /@media \(max-width: 419px\)/);
-  assert.match(styles, /@media \(min-width: 640px\)/);
-  assert.match(styles, /:focus-visible\s*{[^}]*outline:\s*3px solid var\(--accent\)/s);
+  const [darkMode] = mediaBlocks(styles, 'prefers-color-scheme: dark');
+  const [phone] = mediaBlocks(styles, 'max-width: 419px');
+  const [wide] = mediaBlocks(styles, 'min-width: 640px');
+  const [reducedMotion] = mediaBlocks(styles, 'prefers-reduced-motion: reduce');
+  assert.ok(darkMode, 'dark mode media rule exists');
+  assert.ok(phone, 'phone breakpoint exists');
+  assert.ok(wide, 'wide viewport breakpoint exists');
+  assert.ok(reducedMotion, 'reduced-motion media rule exists');
+  assert.match(darkMode, /--page\s*:\s*#0a0f1a\s*;/i);
+  assert.match(phone, /\.actions\s+\.btn\s*,\s*\.get-action\s+\.btn\s*{[^}]*width\s*:\s*100%\s*;/s);
+  assert.match(wide, /--gutter\s*:\s*32px\s*;/i);
+  assert.match(reducedMotion, /html\s*{[^}]*scroll-behavior\s*:\s*auto\s*;/s);
+  assert.match(reducedMotion, /\.btn\s*{[^}]*transition\s*:\s*none\s*;/s);
+  assert.match(styles, /:focus-visible\s*{[^}]*outline\s*:\s*3px solid var\(--accent\)/s);
   assert.doesNotMatch(styles, /outline:\s*none/);
-  assert.match(styles, /@media \(prefers-reduced-motion: reduce\)/);
 });
 
 test('the page holds no personal data, private hostnames or banned claims', () => {

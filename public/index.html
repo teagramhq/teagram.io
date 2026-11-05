@@ -4,11 +4,13 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="light dark">
-    <meta name="theme-color" content="#0f7a57">
-    <meta name="description" content="Teagram is a messaging app with its own server. The macOS desktop client is in early development, and a web client is in progress.">
+    <meta name="theme-color" content="#F7FAF8" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#0A0F1A" media="(prefers-color-scheme: dark)">
+    <meta name="description" content="Teagram is a messenger you can host yourself, so your chats stay on your own server. Sign up with a username and a password, no phone number or email.">
 
-    <title>Teagram — a messaging app with its own server</title>
+    <title>Teagram: self-hosted, private messaging with just a username</title>
     <link rel="canonical" href="https://teagram.io/">
+    <link rel="preload" href="./assets/fonts/besley-500.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="icon" type="image/png" sizes="16x16" href="./assets/brand/t-primary-16.png">
     <link rel="icon" type="image/png" sizes="32x32" href="./assets/brand/t-primary-32.png">
     <link rel="icon" type="image/png" sizes="64x64" href="./assets/brand/t-primary-64.png">
@@ -17,130 +19,174 @@
 
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Teagram">
-    <meta property="og:title" content="Teagram — a messaging app with its own server">
-    <meta property="og:description" content="A macOS desktop client in early development, with a web client in progress.">
+    <meta property="og:title" content="Teagram: self-hosted, private messaging with just a username">
+    <meta property="og:description" content="Teagram is a messenger you can host yourself, so your chats stay on your own server. Sign up with a username and a password, no phone number or email.">
     <meta property="og:url" content="https://teagram.io/">
     <meta property="og:image" content="https://teagram.io/assets/teagram-social.png">
-    <meta property="og:image:alt" content="The Teagram T speech-bubble mark beside the words: a messaging app with its own server.">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="The Teagram T speech-bubble mark with the words: Host it yourself. Keep it private. Just a username. teagram.io">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Teagram — a messaging app with its own server">
-    <meta name="twitter:description" content="A macOS desktop client in early development, with a web client in progress.">
+    <meta name="twitter:title" content="Teagram: self-hosted, private messaging with just a username">
+    <meta name="twitter:description" content="Teagram is a messenger you can host yourself, so your chats stay on your own server. Sign up with a username and a password, no phone number or email.">
     <meta name="twitter:image" content="https://teagram.io/assets/teagram-social.png">
+    <meta name="twitter:image:alt" content="The Teagram T speech-bubble mark with the words: Host it yourself. Keep it private. Just a username. teagram.io">
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
 
     <header class="site-header">
-      <div class="page-width header-content">
-        <a class="brand" href="./" aria-label="Teagram home">
-          <picture class="brand-mark">
-            <source media="(prefers-color-scheme: dark)" srcset="./assets/brand/t-night-128.png">
-            <img src="./assets/brand/t-paper-128.png" alt="Teagram" width="42" height="42">
-          </picture>
-          <span class="brand-name">Teagram</span>
+      <div class="wrap header-row">
+        <a class="brand" href="./">
+          <img class="brand-mark" src="./assets/brand/t-primary-64.png" width="32" height="32" alt="">
+          <span class="wordmark">Teagram</span>
         </a>
-
-        <nav class="site-nav" aria-label="Main navigation">
-          <a href="#status">Status</a>
-          <a href="#projects">Projects</a>
+        <nav class="site-nav" aria-label="Main">
+          <a class="nav-wide" href="#why">Why Teagram</a>
+          <a class="nav-mid" href="#get">Get Teagram</a>
+          <a href="#faq">FAQ</a>
+          <a class="nav-wide" href="https://github.com/teagramhq">GitHub<span class="ext" aria-hidden="true">↗</span></a>
         </nav>
-
-        <a class="header-follow" href="https://github.com/teagramhq/teagram.io">
-          Follow on GitHub <span aria-hidden="true">↗</span>
-        </a>
       </div>
     </header>
 
-    <main id="main" class="page-width">
+    <main id="main">
       <section class="hero" aria-labelledby="hero-title">
-        <div class="hero-copy">
-          <p class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span> A new messaging app</p>
-          <h1 id="hero-title">A messaging app with its own server.</h1>
-          <p class="hero-lead">Teagram is built around a server of its own, with a macOS desktop client and a web client in progress.</p>
-          <p class="sign-in-note"><span class="note-label">Sign in</span> Username and password. <strong>No phone numbers.</strong></p>
-
-          <nav class="hero-actions" aria-label="Teagram links">
-            <a class="button" href="#projects">Explore the projects <span aria-hidden="true">↓</span></a>
-            <a class="text-link" href="https://github.com/teagramhq/teagram.io">Follow on GitHub <span aria-hidden="true">↗</span></a>
-          </nav>
-        </div>
-
-        <aside class="status-panel" id="status" aria-labelledby="status-title">
-          <div class="status-panel-top">
-            <p class="eyebrow">Where things stand</p>
-            <picture class="status-mark" aria-hidden="true">
-              <source media="(prefers-color-scheme: dark)" srcset="./assets/brand/t-night-128.png">
-              <img src="./assets/brand/t-paper-128.png" alt="" width="128" height="128">
-            </picture>
+        <div class="wrap hero-grid">
+          <h1 id="hero-title"><span>Host it yourself.</span> <span>Keep it private.</span> <span>Just a username.</span></h1>
+          <div class="hero-side">
+            <p class="lead">Teagram is a messaging app with an <a href="https://github.com/teagramhq/teagram-server">open-source server</a> you can run yourself, so your chats are stored on a machine you control. Sign up with a username and a password: no phone number, no email.</p>
+            <div class="actions">
+              <a class="btn btn-primary" href="https://github.com/teagramhq/teagram-desktop/releases">Download for macOS</a>
+              <p class="soon">Teagram Web is coming soon.</p>
+            </div>
+            <p class="fine">Free. For Macs with Apple silicon and macOS 13 or later.</p>
           </div>
-
-          <h2 id="status-title" class="status-title"><span class="status-dot" aria-hidden="true"></span> Early development</h2>
-
-          <dl class="status-list">
-            <div class="status-row">
-              <dt>Deployment</dt>
-              <dd>Development</dd>
-            </div>
-            <div class="status-row">
-              <dt>Desktop</dt>
-              <dd>macOS only</dd>
-            </div>
-            <div class="status-row">
-              <dt>Web client</dt>
-              <dd>In progress</dd>
-            </div>
-          </dl>
-
-          <p class="status-footnote">No public sign-up or downloads yet.</p>
-        </aside>
+        </div>
       </section>
 
-      <section class="projects" id="projects" aria-labelledby="projects-title">
-        <div class="projects-heading">
-          <p class="eyebrow">Built in the open</p>
-          <h2 id="projects-title">Follow the work</h2>
-          <p>Teagram is still taking shape. These are the public project homes.</p>
+      <section class="showcase" aria-label="Teagram on Mac and on the web">
+        <div class="wrap">
+          <div class="stage">
+            <picture class="shot shot-desktop">
+              <source media="(prefers-color-scheme: dark)" srcset="./assets/shots/mac-dark.webp">
+              <img src="./assets/shots/mac-light.webp" width="1680" height="1050" fetchpriority="high" alt="Teagram for Mac with a group chat open next to the chat list">
+            </picture>
+            <picture class="shot shot-web">
+              <source media="(prefers-color-scheme: dark)" srcset="./assets/shots/web-dark.webp">
+              <img src="./assets/shots/web-light.webp" width="520" height="1125" loading="lazy" alt="Teagram Web in a phone-sized browser window, showing the same group chat">
+            </picture>
+            <svg class="stage-tail" viewBox="0 0 136 112" aria-hidden="true" focusable="false"><path d="M0 0H136C136 16 129 31 116 41L34 106C21 116 0 107 0 90Z"/></svg>
+          </div>
         </div>
+      </section>
 
-        <div class="project-list">
-          <article class="project-row">
-            <div class="project-copy">
-              <h3><a href="https://github.com/teagramhq/teagram-server">teagram-server</a></h3>
-              <p>The server behind Teagram.</p>
-            </div>
-            <a class="project-open" href="https://github.com/teagramhq/teagram-server" aria-label="View teagram-server on GitHub">
-              <span aria-hidden="true">↗</span>
-            </a>
-          </article>
-          <article class="project-row">
-            <div class="project-copy">
-              <h3><a href="https://github.com/teagramhq/teagram-desktop">teagram-desktop</a></h3>
-              <p>The macOS desktop client.</p>
-            </div>
-            <a class="project-open" href="https://github.com/teagramhq/teagram-desktop" aria-label="View teagram-desktop on GitHub">
-              <span aria-hidden="true">↗</span>
-            </a>
-          </article>
-          <article class="project-row">
-            <div class="project-copy">
-              <h3><a href="https://github.com/teagramhq/teagram-web">teagram-web</a></h3>
-              <p>A web client in progress.</p>
-            </div>
-            <a class="project-open" href="https://github.com/teagramhq/teagram-web" aria-label="View teagram-web on GitHub">
-              <span aria-hidden="true">↗</span>
-            </a>
-          </article>
+      <section class="why" id="why" aria-labelledby="why-title">
+        <div class="wrap">
+          <h2 id="why-title">Why Teagram</h2>
+          <div class="benefits">
+            <article class="benefit">
+              <h3>Host it yourself</h3>
+              <p>The <a href="https://github.com/teagramhq/teagram-server">server</a>, the <a href="https://github.com/teagramhq/teagram-web">web client</a> and the <a href="https://github.com/teagramhq/teagram-desktop">Mac app</a> are all open source on GitHub. Run the server and the web client on a machine you control, and point Teagram for Mac at your server's address.</p>
+            </article>
+            <article class="benefit">
+              <h3>Keep it private</h3>
+              <p>On your own server, your chats, files and account are stored on a machine you control, not a company's. Messages aren't end-to-end encrypted, so whoever runs the server can read them, and on your own server that's you.</p>
+            </article>
+            <article class="benefit">
+              <h3>Just a username</h3>
+              <p>People find you by your username, and the name they see is up to you. Teagram never asks for a phone number, and an email is optional. See <a href="#faq-data">what a server keeps</a>.</p>
+            </article>
+            <article class="benefit">
+              <h3>The features you're used to</h3>
+              <p>Teagram speaks the Telegram protocol, and its apps are built on the open-source Telegram apps. One-to-one chats, groups, channels, photos and files, reactions, polls, folders and search are all there.</p>
+            </article>
+          </div>
         </div>
+      </section>
 
-        <p class="follow-note">Until public sign-up and downloads are ready, <a href="https://github.com/teagramhq/teagram.io">follow along on GitHub</a>.</p>
+      <section class="get" id="get" aria-labelledby="get-title">
+        <div class="wrap">
+          <h2 id="get-title">Get Teagram</h2>
+          <div class="get-grid">
+            <article class="get-card">
+              <img class="get-icon" src="./assets/brand/mug-signal-256.png" width="72" height="72" alt="">
+              <h3>Teagram for Mac</h3>
+              <p>Early builds for Macs with Apple silicon and macOS 13 or later.</p>
+              <p class="fine">You'll need the address of a Teagram server. <a href="#faq-open">How to open the app the first time</a></p>
+              <div class="get-action">
+                <a class="btn btn-primary" href="https://github.com/teagramhq/teagram-desktop/releases">Download for macOS</a>
+              </div>
+            </article>
+            <article class="get-card">
+              <img class="get-icon" src="./assets/brand/t-primary-256.png" width="72" height="72" alt="">
+              <h3>Teagram Web</h3>
+              <p>Use Teagram in your browser at web.teagram.io, with nothing to install.</p>
+              <div class="get-action">
+                <p class="pill">Coming soon</p>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="faq" id="faq" aria-labelledby="faq-title">
+        <div class="wrap faq-grid">
+          <h2 id="faq-title">Frequently asked questions</h2>
+          <div class="qa-list">
+            <div class="qa" id="faq-what">
+              <h3>What is Teagram?</h3>
+              <p>Teagram is a messaging app for one-to-one chats, groups and channels, with an open-source server you can run yourself. You sign up with a username and a password instead of a phone number.</p>
+            </div>
+            <div class="qa" id="faq-telegram">
+              <h3>How is Teagram related to Telegram?</h3>
+              <p>Teagram speaks the Telegram protocol, the language its apps and server use to talk to each other. Teagram for Mac is based on Telegram Desktop and Teagram Web on Telegram Web K, both open source. Teagram has its own servers and accounts, so you can't message Telegram users from it. Teagram is not affiliated with Telegram.</p>
+            </div>
+            <div class="qa" id="faq-privacy">
+              <h3>How private is Teagram?</h3>
+              <p>As private as the server you use, and the most private one is your own: run it yourself and everything it stores is on machines you control. Messages are encrypted between your app and the server but not end to end, so whoever runs the server can read them. You sign up with a username and a password, no phone number or email, and the password itself is never sent to the server.</p>
+            </div>
+            <div class="qa" id="faq-data">
+              <h3>What does a Teagram server keep about me?</h3>
+              <p>Your username, profile, chats and files. For each signed-in session, its IP address, device, system and app version, which you can see and end in your list of sessions. A recovery email only if you add one, and short-lived counters per network that limit abuse such as password guessing. A server's operator can also turn on a Cloudflare check at sign-up, which shares your IP address with Cloudflare.</p>
+            </div>
+            <div class="qa" id="faq-cost">
+              <h3>How much does Teagram cost?</h3>
+              <p>Nothing. Teagram is free and open source. If you run your own server, the only cost is the machine it runs on.</p>
+            </div>
+            <div class="qa" id="faq-account">
+              <h3>How do I get an account?</h3>
+              <p>Accounts live on a Teagram server. Open Teagram for Mac, enter your server's address, then pick a username and password. No server yet? Run your own with <a href="https://github.com/teagramhq/teagram-server">Teagram Server</a>, or wait for Teagram Web, coming soon.</p>
+            </div>
+            <div class="qa" id="faq-open">
+              <h3>How do I open Teagram for Mac the first time?</h3>
+              <p>Teagram for Mac isn't notarized by Apple, so macOS stops it the first time you open it. Go to System Settings &gt; Privacy &amp; Security, choose Open Anyway next to the message about Teagram, and confirm. After that, it opens like any other app.</p>
+            </div>
+            <div class="qa" id="faq-platforms">
+              <h3>Is there an app for iPhone, Android, Windows or Linux?</h3>
+              <p>No. Teagram for Mac is the only app. Teagram Web, coming soon, runs in the browser on other devices.</p>
+            </div>
+          </div>
+        </div>
       </section>
     </main>
 
     <footer class="site-footer">
-      <div class="page-width footer-content">
-        <p class="footer-brand">Teagram</p>
-        <p>Teagram is not affiliated with Telegram.</p>
-        <p>The macOS client is based on Telegram Desktop, licensed under <a href="https://github.com/telegramdesktop/tdesktop/blob/dev/LICENSE">GPL-3.0</a>.</p>
+      <div class="wrap footer-grid">
+        <a class="brand brand-small" href="./">
+          <img class="brand-mark" src="./assets/brand/t-primary-64.png" width="24" height="24" alt="">
+          <span class="wordmark">Teagram</span>
+        </a>
+        <nav class="footer-nav" aria-label="Source code">
+          <span class="footer-label">Source code</span>
+          <a href="https://github.com/teagramhq/teagram-desktop">Mac app</a>
+          <a href="https://github.com/teagramhq/teagram-web">Web client</a>
+          <a href="https://github.com/teagramhq/teagram-server">Server</a>
+        </nav>
+        <div class="legal">
+          <p>Teagram is not affiliated with Telegram.</p>
+          <p>Teagram for Mac is based on Telegram Desktop and Teagram Web on Telegram Web K, both licensed under <a href="https://www.gnu.org/licenses/gpl-3.0.html">GPL-3.0</a>. Teagram Server is licensed under <a href="https://www.gnu.org/licenses/agpl-3.0.html">AGPL-3.0</a>.</p>
+        </div>
       </div>
     </footer>
   </body>
